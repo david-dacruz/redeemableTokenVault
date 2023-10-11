@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.21;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
@@ -39,14 +39,14 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
 
     /// @dev Emitted when a token is deposited.
     event Deposited(
-        address indexed user,
+        address user,
         uint256 _depositId,
         address tokenAddress,
         uint256 tokenId
     );
 
     /// @dev Emitted when a token is withdrawn.
-    event Withdrawn(address indexed user, uint256 _depositId);
+    event Withdrawn(address user, uint256 _depositId);
 
     // Mapping to store the fee associated with each deposit
     mapping(uint256 => uint256) public depositWithdrawalFees;
