@@ -8,9 +8,6 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @title RedeemableTokenVault
-/// @dev A contract that allows authorized addresses to deposit ERC721 and ERC1155 tokens.
-/// Users with a valid signature can later withdraw tokens.
 contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     using ECDSA for bytes32;
 
@@ -96,7 +93,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     }
 
     /// @notice Deposit an ERC1155 token into the contract.
-    /// @dev Always test for potential gas limitations.
     /// @param tokenAddress The address of the ERC1155 contract.
     /// @param tokenId The ID of the token being deposited.
     function depositERC1155(address tokenAddress, uint256 tokenId) external {
@@ -168,7 +164,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     }
 
     /// @notice Emergency function to transfer all vaulted tokens to another address.
-    /// @dev This function can only be called by the owner.
     /// @param startId The starting depositId.
     /// @param endId The ending depositId.
     /// @param receiver The address to receive the withdrawn tokens.
