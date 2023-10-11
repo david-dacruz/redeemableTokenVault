@@ -174,32 +174,40 @@ describe('RedeemableTokenVault', function () {
 		});
 	});
 
-	describe('emergencyWithdrawAll', function () {
-		it('should allow the owner to withdraw all tokens to another address', async function () {
+	describe('emergencyWithdrawRange', function () {
+		it('should allow the owner to withdraw a range of tokens to another address', async function () {
 			// Mint and deposit an ERC721
 			await erc721.mint(addr1.address, 1);
 			await erc721.connect(addr1).approve(vault.address, 1);
 			await vault.connect(addr1).depositERC721(erc721.address, 1);
-
+	
 			// Mint and deposit an ERC1155
-			await erc1155.mint(addr1.address, 2, 1000, '0x');
+			await erc1155.mint(addr1.address, 2, 1, []);
 			await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
 			await vault.connect(addr1).depositERC1155(erc1155.address, 2);
-
-			// Emergency withdraw all
-			await vault.connect(owner).emergencyWithdrawAll(owner.address);
-
+	
+			// Get the current and next depositId to determine the range
+			const startId = 1;
+			const endId = 2;
+	
+			// Emergency withdraw for the range
+			await vault.connect(owner).emergencyWithdrawRange(startId, endId, owner.address);
+	
 			// Check that the receiver has received the tokens
 			expect(await erc721.ownerOf(1)).to.equal(owner.address);
 			expect(await erc1155.balanceOf(owner.address, 2)).to.equal(1);
 		});
-
-		it('should not allow non-owners to call emergencyWithdrawAll', async function () {
+	
+		it('should not allow non-owners to call emergencyWithdrawRange', async function () {
+			const startId = 1;
+			const endId = 2;
+	
 			await expect(
-				vault.connect(addr1).emergencyWithdrawAll(owner.address)
+				vault.connect(addr1).emergencyWithdrawRange(startId, endId, owner.address)
 			).to.be.revertedWith('Ownable: caller is not the owner');
 		});
 	});
+	
 
 	describe('withdrawWithSignature', function () {
 		it('Should allow ERC721 withdrawal with valid signature', async function () {

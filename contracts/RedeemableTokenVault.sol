@@ -99,10 +99,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     /// @dev Always test for potential gas limitations.
     /// @param tokenAddress The address of the ERC1155 contract.
     /// @param tokenId The ID of the token being deposited.
-    function depositERC1155(
-        address tokenAddress,
-        uint256 tokenId
-    ) external {
+    function depositERC1155(address tokenAddress, uint256 tokenId) external {
         require(isAllowed[msg.sender], "Not authorized to deposit");
 
         IERC1155(tokenAddress).safeTransferFrom(
@@ -113,18 +110,12 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
             ""
         );
 
-            depositId++;
-            vault[depositId] = Token(
-                msg.sender,
-                tokenAddress,
-                tokenId,
-                true,
-                1
-            );
-            // We maintain a mapping to track deposit IDs for a specific token and user
-            depositedTokens[msg.sender][tokenId] = depositId;
+        depositId++;
+        vault[depositId] = Token(msg.sender, tokenAddress, tokenId, true, 1);
+        // We maintain a mapping to track deposit IDs for a specific token and user
+        depositedTokens[msg.sender][tokenId] = depositId;
 
-            emit Deposited(msg.sender, depositId, tokenAddress, tokenId);
+        emit Deposited(msg.sender, depositId, tokenAddress, tokenId);
     }
 
     /// @notice Withdraw a token from the contract.
@@ -136,18 +127,16 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         bytes memory _signature,
         uint256 _expiryBlockHeight
     ) external payable {
-        require(
-            block.number <= _expiryBlockHeight,
-            "Signature expired"
-        );
+        require(block.number <= _expiryBlockHeight, "Signature expired");
 
         Token memory tokenData = vault[_depositId];
 
         uint256 requiredFee = depositWithdrawalFees[_depositId];
         require(msg.value >= requiredFee, "Insufficient fee paid");
 
-        bytes32 hash = keccak256(abi.encodePacked(msg.sender, _depositId,   _expiryBlockHeight))
-            .toEthSignedMessageHash();
+        bytes32 hash = keccak256(
+            abi.encodePacked(msg.sender, _depositId, _expiryBlockHeight)
+        ).toEthSignedMessageHash();
 
         require(!usedSignatures[hash], "Signature has already been used");
         usedSignatures[hash] = true;
@@ -180,11 +169,21 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
 
     /// @notice Emergency function to transfer all vaulted tokens to another address.
     /// @dev This function can only be called by the owner.
+    /// @param startId The starting depositId.
+    /// @param endId The ending depositId.
     /// @param receiver The address to receive the withdrawn tokens.
-    function emergencyWithdrawAll(address receiver) external onlyOwner {
+    function emergencyWithdrawRange(
+        uint256 startId,
+        uint256 endId,
+        address receiver
+    ) external onlyOwner {
         require(receiver != address(0), "Invalid address");
+        require(
+            startId > 0 && startId <= endId && endId <= depositId,
+            "Invalid ID range"
+        );
 
-        for (uint256 i = 1; i <= depositId; i++) {
+        for (uint256 i = startId; i <= endId; i++) {
             if (vault[i].contractAddress == address(0)) continue; // skip already withdrawn tokens
 
             Token memory tokenData = vault[i];
