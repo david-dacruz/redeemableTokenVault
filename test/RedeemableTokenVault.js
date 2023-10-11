@@ -27,11 +27,11 @@ describe('RedeemableTokenVault', function () {
 		await vault.deployed();
 
 		// Allow addr1 to deposit tokens in the vault
-        await vault.addToAllowedList(addr1.address);
-        
-        const currentBlockNum = await ethers.provider.getBlockNumber();
+		await vault.addToAllowedList(addr1.address);
 
-        expirationBlock = currentBlockNum + 40; // 4 ≈1min
+		const currentBlockNum = await ethers.provider.getBlockNumber();
+
+		expirationBlock = currentBlockNum + 40; // 4 ≈1min
 	});
 
 	describe('depositERC721', function () {
@@ -80,9 +80,7 @@ describe('RedeemableTokenVault', function () {
 			await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
 
 			await expect(
-				vault
-					.connect(addr1)
-					.depositERC1155(erc1155.address, tokenId2)
+				vault.connect(addr1).depositERC1155(erc1155.address, tokenId2)
 			).to.emit(vault, 'Deposited');
 		});
 
@@ -93,9 +91,7 @@ describe('RedeemableTokenVault', function () {
 				.setApprovalForAll(vault.address, tokenId2);
 
 			await expect(
-				vault
-					.connect(addr2)
-					.depositERC1155(erc1155.address, tokenId2)
+				vault.connect(addr2).depositERC1155(erc1155.address, tokenId2)
 			).to.rejectedWith('Not authorized to deposit');
 		});
 
@@ -180,34 +176,37 @@ describe('RedeemableTokenVault', function () {
 			await erc721.mint(addr1.address, 1);
 			await erc721.connect(addr1).approve(vault.address, 1);
 			await vault.connect(addr1).depositERC721(erc721.address, 1);
-	
+
 			// Mint and deposit an ERC1155
 			await erc1155.mint(addr1.address, 2, 1, []);
 			await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
 			await vault.connect(addr1).depositERC1155(erc1155.address, 2);
-	
+
 			// Get the current and next depositId to determine the range
 			const startId = 1;
 			const endId = 2;
-	
+
 			// Emergency withdraw for the range
-			await vault.connect(owner).emergencyWithdrawRange(startId, endId, owner.address);
-	
+			await vault
+				.connect(owner)
+				.emergencyWithdrawRange(startId, endId, owner.address);
+
 			// Check that the receiver has received the tokens
 			expect(await erc721.ownerOf(1)).to.equal(owner.address);
 			expect(await erc1155.balanceOf(owner.address, 2)).to.equal(1);
 		});
-	
+
 		it('should not allow non-owners to call emergencyWithdrawRange', async function () {
 			const startId = 1;
 			const endId = 2;
-	
+
 			await expect(
-				vault.connect(addr1).emergencyWithdrawRange(startId, endId, owner.address)
+				vault
+					.connect(addr1)
+					.emergencyWithdrawRange(startId, endId, owner.address)
 			).to.be.revertedWith('Ownable: caller is not the owner');
 		});
 	});
-	
 
 	describe('withdrawWithSignature', function () {
 		it('Should allow ERC721 withdrawal with valid signature', async function () {
@@ -215,7 +214,7 @@ describe('RedeemableTokenVault', function () {
 			await erc721.connect(addr1).approve(vault.address, 1);
 			await vault.connect(addr1).depositERC721(erc721.address, 1);
 
-            const depositId = 1;
+			const depositId = 1;
 
 			const message = ethers.utils.solidityKeccak256(
 				['address', 'uint256', 'uint256'],
@@ -235,13 +234,9 @@ describe('RedeemableTokenVault', function () {
 		it('Should allow ERC1155 token withdrawal with valid signature', async function () {
 			const tokenId = 2;
 
-			await erc1155
-				.connect(addr1)
-				.mint(addr1.address, tokenId, 1, []);
+			await erc1155.connect(addr1).mint(addr1.address, tokenId, 1, []);
 			await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
-			await vault
-				.connect(addr1)
-				.depositERC1155(erc1155.address, tokenId);
+			await vault.connect(addr1).depositERC1155(erc1155.address, tokenId);
 
 			const depositId = 1;
 
@@ -255,25 +250,23 @@ describe('RedeemableTokenVault', function () {
 
 			await vault
 				.connect(addr1)
-                .withdrawWithSignature(depositId, signature, expirationBlock)
-            
-			expect(await erc1155.balanceOf(addr1.address, tokenId)).to.equal(
-				1
-			);
-        });
-        
-        it('Should allow withdraw of paid ERC721 tokens', async function () {
-            await erc721.connect(addr1).mint(addr1.address, 1);
+				.withdrawWithSignature(depositId, signature, expirationBlock);
+
+			expect(await erc1155.balanceOf(addr1.address, tokenId)).to.equal(1);
+		});
+
+		it('Should allow withdraw of paid ERC721 tokens', async function () {
+			await erc721.connect(addr1).mint(addr1.address, 1);
 			await erc721.connect(addr1).approve(vault.address, 1);
 			await vault.connect(addr1).depositERC721(erc721.address, 1);
-            
-            const depositId = 1;
+
+			const depositId = 1;
 			const fee = ethers.utils.parseEther('0.1');
-            
-            // Set fees for the depositIds
-            await vault
-            .connect(owner)
-            .setWithdrawalFeeForDeposit(depositId, fee);
+
+			// Set fees for the depositIds
+			await vault
+				.connect(owner)
+				.setWithdrawalFeeForDeposit(depositId, fee);
 
 			await owner.sendTransaction({
 				to: vault.address,
@@ -291,8 +284,10 @@ describe('RedeemableTokenVault', function () {
 			);
 
 			await vault
-                .connect(addr1)
-                .withdrawWithSignature(depositId, signature, expirationBlock, {value: fee})
+				.connect(addr1)
+				.withdrawWithSignature(depositId, signature, expirationBlock, {
+					value: fee,
+				});
 
 			expect(await erc721.ownerOf(1)).to.equal(addr1.address);
 		});
@@ -300,23 +295,18 @@ describe('RedeemableTokenVault', function () {
 		it('Should allow withdraw of paid ERC1155 tokens', async function () {
 			const tokenId = 2;
 
-			await erc1155
-				.connect(addr1)
-				.mint(addr1.address, tokenId, 1, []);
+			await erc1155.connect(addr1).mint(addr1.address, tokenId, 1, []);
 			await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
-			await vault
-				.connect(addr1)
-				.depositERC1155(erc1155.address, tokenId);
+			await vault.connect(addr1).depositERC1155(erc1155.address, tokenId);
 
-            
-            const depositId = 1;
+			const depositId = 1;
 			const fee = ethers.utils.parseEther('0.1');
-            
-            // Set fees for the depositIds
-            await vault
-            .connect(owner)
-            .setWithdrawalFeeForDeposit(depositId, fee);
-            
+
+			// Set fees for the depositIds
+			await vault
+				.connect(owner)
+				.setWithdrawalFeeForDeposit(depositId, fee);
+
 			await owner.sendTransaction({
 				to: vault.address,
 				value: fee,
@@ -334,37 +324,39 @@ describe('RedeemableTokenVault', function () {
 
 			await vault
 				.connect(addr1)
-                .withdrawWithSignature(depositId, signature, expirationBlock, {value: fee})
+				.withdrawWithSignature(depositId, signature, expirationBlock, {
+					value: fee,
+				});
 
-			expect(await erc1155.balanceOf(addr1.address, tokenId)).to.equal(
-				1
-			);
+			expect(await erc1155.balanceOf(addr1.address, tokenId)).to.equal(1);
 		});
-		
-        it('Should revert with invalid signature', async function () {
-            const tokenId = 2;
 
-            await erc1155
-                .connect(addr1)
-                .mint(addr1.address, tokenId, 1, []);
-            await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
-            await vault
-                .connect(addr1)
-                .depositERC1155(erc1155.address, tokenId);
+		it('Should revert with invalid signature', async function () {
+			const tokenId = 2;
 
-            const depositId = 1;
+			await erc1155.connect(addr1).mint(addr1.address, tokenId, 1, []);
+			await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
+			await vault.connect(addr1).depositERC1155(erc1155.address, tokenId);
 
-            const message = ethers.utils.solidityKeccak256(
-                ['address', 'uint256', 'uint256'],
-                [addr1.address, depositId, expirationBlock]
-            );
-            const signature = await addr2.signMessage(
-                ethers.utils.arrayify(message)
-            );
+			const depositId = 1;
 
-            await expect(vault
-                .connect(addr1)
-                .withdrawWithSignature(depositId, signature, expirationBlock)).to.rejectedWith('Invalid signature')
+			const message = ethers.utils.solidityKeccak256(
+				['address', 'uint256', 'uint256'],
+				[addr1.address, depositId, expirationBlock]
+			);
+			const signature = await addr2.signMessage(
+				ethers.utils.arrayify(message)
+			);
+
+			await expect(
+				vault
+					.connect(addr1)
+					.withdrawWithSignature(
+						depositId,
+						signature,
+						expirationBlock
+					)
+			).to.rejectedWith('Invalid signature');
 		});
 
 		it('Should revert on fake signature', async function () {
@@ -375,8 +367,12 @@ describe('RedeemableTokenVault', function () {
 			await expect(
 				vault
 					.connect(addr1)
-                    .withdrawWithSignature(depositId, invalidSignature, expirationBlock)
-            ).to.rejectedWith('ECDSA: invalid signature length')
+					.withdrawWithSignature(
+						depositId,
+						invalidSignature,
+						expirationBlock
+					)
+			).to.rejectedWith('ECDSA: invalid signature length');
 		});
 
 		it('Should revert for already used signature', async function () {
@@ -396,9 +392,15 @@ describe('RedeemableTokenVault', function () {
 
 			await vault
 				.connect(addr1)
-                .withdrawWithSignature(depositId, signature, expirationBlock)
+				.withdrawWithSignature(depositId, signature, expirationBlock);
 			await expect(
-				vault.connect(addr1).withdrawWithSignature(depositId, signature, expirationBlock)
+				vault
+					.connect(addr1)
+					.withdrawWithSignature(
+						depositId,
+						signature,
+						expirationBlock
+					)
 			).to.be.revertedWith('Signature has already been used');
 		});
 
@@ -414,22 +416,28 @@ describe('RedeemableTokenVault', function () {
 			); // Signed by another address
 
 			await expect(
-				vault.connect(addr1).withdrawWithSignature(depositId, signature, expirationBlock)
+				vault
+					.connect(addr1)
+					.withdrawWithSignature(
+						depositId,
+						signature,
+						expirationBlock
+					)
 			).to.be.revertedWith('Invalid signature');
 		});
-	
-        it('Should not allow withdraw of paid ERC721 tokens with 0 eth', async function () {
-            await erc721.connect(addr1).mint(addr1.address, 1);
+
+		it('Should not allow withdraw of paid ERC721 tokens with 0 eth', async function () {
+			await erc721.connect(addr1).mint(addr1.address, 1);
 			await erc721.connect(addr1).approve(vault.address, 1);
 			await vault.connect(addr1).depositERC721(erc721.address, 1);
-            
-            const depositId = 1;
+
+			const depositId = 1;
 			const fee = ethers.utils.parseEther('0.1');
-            
-            // Set fees for the depositIds
-            await vault
-            .connect(owner)
-            .setWithdrawalFeeForDeposit(depositId, fee);
+
+			// Set fees for the depositIds
+			await vault
+				.connect(owner)
+				.setWithdrawalFeeForDeposit(depositId, fee);
 
 			await owner.sendTransaction({
 				to: vault.address,
@@ -438,7 +446,7 @@ describe('RedeemableTokenVault', function () {
 
 			await vault.setWithdrawalFeeForDeposit(depositId, fee);
 
-            const message = ethers.utils.solidityKeccak256(
+			const message = ethers.utils.solidityKeccak256(
 				['address', 'uint256', 'uint256'],
 				[addr1.address, depositId, expirationBlock]
 			);
@@ -446,31 +454,32 @@ describe('RedeemableTokenVault', function () {
 				ethers.utils.arrayify(message)
 			);
 
-			await expect(vault
-				.connect(addr1)
-				.withdrawWithSignature(depositId, signature, expirationBlock)).to.revertedWith('Insufficient fee paid')
+			await expect(
+				vault
+					.connect(addr1)
+					.withdrawWithSignature(
+						depositId,
+						signature,
+						expirationBlock
+					)
+			).to.revertedWith('Insufficient fee paid');
 		});
 
 		it('Should not allow withdraw of paid ERC1155 tokens with 0 eth', async function () {
 			const tokenId = 2;
 
-			await erc1155
-				.connect(addr1)
-				.mint(addr1.address, tokenId, 1, []);
+			await erc1155.connect(addr1).mint(addr1.address, tokenId, 1, []);
 			await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
-			await vault
-				.connect(addr1)
-				.depositERC1155(erc1155.address, tokenId);
+			await vault.connect(addr1).depositERC1155(erc1155.address, tokenId);
 
-            
-            const depositId = 1;
+			const depositId = 1;
 			const fee = ethers.utils.parseEther('0.1');
-            
-            // Set fees for the depositIds
-            await vault
-            .connect(owner)
-            .setWithdrawalFeeForDeposit(depositId, fee);
-            
+
+			// Set fees for the depositIds
+			await vault
+				.connect(owner)
+				.setWithdrawalFeeForDeposit(depositId, fee);
+
 			await owner.sendTransaction({
 				to: vault.address,
 				value: fee,
@@ -478,7 +487,7 @@ describe('RedeemableTokenVault', function () {
 
 			await vault.setWithdrawalFeeForDeposit(depositId, fee);
 
-            const message = ethers.utils.solidityKeccak256(
+			const message = ethers.utils.solidityKeccak256(
 				['address', 'uint256', 'uint256'],
 				[addr1.address, depositId, expirationBlock]
 			);
@@ -486,9 +495,15 @@ describe('RedeemableTokenVault', function () {
 				ethers.utils.arrayify(message)
 			);
 
-            await expect(vault
-				.connect(addr1)
-				.withdrawWithSignature(depositId, signature, expirationBlock)).to.revertedWith('Insufficient fee paid')
+			await expect(
+				vault
+					.connect(addr1)
+					.withdrawWithSignature(
+						depositId,
+						signature,
+						expirationBlock
+					)
+			).to.revertedWith('Insufficient fee paid');
 		});
 	});
 });
