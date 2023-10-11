@@ -24,20 +24,4 @@ contract ERC1155Mock is ERC1155 {
     ) external {
         _mintBatch(account, ids, amounts, data);
     }
-
-    function burn(
-        address account,
-        uint256 id,
-        uint256 amount
-    ) external {
-        _burn(account, id, amount);
-    }
-
-    function burnBatch(
-        address account,
-        uint256[] memory ids,
-        uint256[] memory amounts
-    ) external {
-        _burnBatch(account, ids, amounts);
-    }
 }
