@@ -193,7 +193,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
                     address(this),
                     receiver,
                     tokenData.tokenId,
-                    tokenData.amount,
+                    1,
                     ""
                 );
             } else {
