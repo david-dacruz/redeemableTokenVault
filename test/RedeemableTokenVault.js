@@ -245,8 +245,8 @@ describe('RedeemableTokenVault', function () {
 			const depositId = 1;
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr2.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr2.address, depositId, expirationBlock, vault.address]
 			);
 			const signature = await owner.signMessage(
 				ethers.utils.arrayify(message)
@@ -269,8 +269,8 @@ describe('RedeemableTokenVault', function () {
 			const depositId = 1;
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr2.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr2.address, depositId, expirationBlock, vault.address]
 			);
 			const signature = await owner.signMessage(
 				ethers.utils.arrayify(message)
@@ -292,13 +292,11 @@ describe('RedeemableTokenVault', function () {
 			const fee = ethers.utils.parseEther('0.1');
 
 			// Set fees for the depositIds
-			await vault
-				.connect(owner)
-				.setWithdrawalFee(depositId, fee);
+			await vault.connect(owner).setWithdrawalFee(depositId, fee);
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr2.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr2.address, depositId, expirationBlock, vault.address]
 			);
 			const signature = await owner.signMessage(
 				ethers.utils.arrayify(message)
@@ -324,13 +322,11 @@ describe('RedeemableTokenVault', function () {
 			const fee = ethers.utils.parseEther('0.1');
 
 			// Set fees for the depositIds
-			await vault
-				.connect(owner)
-				.setWithdrawalFee(depositId, fee);
+			await vault.connect(owner).setWithdrawalFee(depositId, fee);
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr2.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr2.address, depositId, expirationBlock, vault.address]
 			);
 			const signature = await owner.signMessage(
 				ethers.utils.arrayify(message)
@@ -355,8 +351,8 @@ describe('RedeemableTokenVault', function () {
 			const depositId = 1;
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr1.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr1.address, depositId, expirationBlock, vault.address]
 			);
 			const signature = await addr2.signMessage(
 				ethers.utils.arrayify(message)
@@ -397,8 +393,8 @@ describe('RedeemableTokenVault', function () {
 			const depositId = 1;
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr2.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr2.address, depositId, expirationBlock, vault.address]
 			);
 			const signature = await owner.signMessage(
 				ethers.utils.arrayify(message)
@@ -422,8 +418,8 @@ describe('RedeemableTokenVault', function () {
 			const depositId = 1;
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr1.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr1.address, depositId, expirationBlock, vault.address]
 			);
 			const signature = await addr2.signMessage(
 				ethers.utils.arrayify(message)
@@ -449,13 +445,11 @@ describe('RedeemableTokenVault', function () {
 			const fee = ethers.utils.parseEther('0.1');
 
 			// Set fees for the depositIds
-			await vault
-				.connect(owner)
-				.setWithdrawalFee(depositId, fee);
+			await vault.connect(owner).setWithdrawalFee(depositId, fee);
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr2.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr2.address, depositId, expirationBlock, vault.address]
 			);
 			const signature = await owner.signMessage(
 				ethers.utils.arrayify(message)
@@ -483,13 +477,11 @@ describe('RedeemableTokenVault', function () {
 			const fee = ethers.utils.parseEther('0.1');
 
 			// Set fees for the depositIds
-			await vault
-				.connect(owner)
-				.setWithdrawalFee(depositId, fee);
+			await vault.connect(owner).setWithdrawalFee(depositId, fee);
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr2.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr2.address, depositId, expirationBlock, vault.address]
 			);
 			const signature = await owner.signMessage(
 				ethers.utils.arrayify(message)
@@ -523,8 +515,8 @@ describe('RedeemableTokenVault', function () {
 			const depositId = 1;
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr1.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr1.address, depositId, expirationBlock, vault.address]
 			);
 
 			const signature = await owner.signMessage(
@@ -554,8 +546,8 @@ describe('RedeemableTokenVault', function () {
 			const depositId = 1;
 
 			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256'],
-				[addr2.address, depositId, expirationBlock]
+				['address', 'uint256', 'uint256', 'address'],
+				[addr2.address, depositId, expirationBlock, vault.address]
 			);
 			const signature = await owner.signMessage(
 				ethers.utils.arrayify(message)
@@ -572,18 +564,22 @@ describe('RedeemableTokenVault', function () {
 			expect(balanceAfterWithdraw).to.equal(1);
 		});
 
-		it("should only allow safeTransfer one token at a time", async function () {
+		it('should only allow safeTransfer one token at a time', async function () {
 			// Mint a token to addr1 and approve the vault
 			await erc1155.connect(addr1).mint(addr1.address, 1, 2, []);
 			await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
-	
+
 			// Expect that trying to deposit more than one token will revert
 			await expect(
-				erc1155.connect(addr1).safeTransferFrom(addr1.address, vault.address, 1, 2, [])
-			).to.be.revertedWith("Deposit 1 token at a time.");
-	
+				erc1155
+					.connect(addr1)
+					.safeTransferFrom(addr1.address, vault.address, 1, 2, [])
+			).to.be.revertedWith('Deposit 1 token at a time.');
+
 			// Deposit one token and expect it to be successful
-			await erc1155.connect(addr1).safeTransferFrom(addr1.address, vault.address, 1, 1, []);
+			await erc1155
+				.connect(addr1)
+				.safeTransferFrom(addr1.address, vault.address, 1, 1, []);
 			expect(await erc1155.balanceOf(vault.address, 1)).to.equal(1);
 		});
 	});
@@ -598,11 +594,9 @@ describe('RedeemableTokenVault', function () {
 			expect(await erc721.ownerOf(1)).to.equal(vault.address);
 
 			// Perform the emergency withdrawal
-			await vault.connect(owner).emergencyERC721Withdrawal(
-				erc721.address,
-				1,
-				addr2.address
-			);
+			await vault
+				.connect(owner)
+				.emergencyERC721Withdrawal(erc721.address, 1, addr2.address);
 			expect(await erc721.ownerOf(1)).to.equal(addr2.address);
 		});
 
@@ -615,12 +609,14 @@ describe('RedeemableTokenVault', function () {
 			expect(await erc1155.balanceOf(vault.address, 1)).to.equal(1);
 
 			// Perform the emergency withdrawal
-			await vault.connect(owner).emergencyERC1155Withdrawal(
-				erc1155.address,
-				1,
-				1,
-				addr2.address
-			);
+			await vault
+				.connect(owner)
+				.emergencyERC1155Withdrawal(
+					erc1155.address,
+					1,
+					1,
+					addr2.address
+				);
 			expect(await erc1155.balanceOf(addr2.address, 1)).to.equal(1);
 		});
 	});

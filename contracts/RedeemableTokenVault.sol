@@ -121,7 +121,12 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         require(msg.value >= requiredFee, "Insufficient fee paid");
 
         bytes32 hash = keccak256(
-            abi.encodePacked(msg.sender, depositId, expiryBlockHeight)
+            abi.encodePacked(
+                msg.sender,
+                depositId,
+                expiryBlockHeight,
+                address(this)
+            )
         ).toEthSignedMessageHash();
 
         require(!signatureAlreadyUsed[hash], "Signature already used");
