@@ -10,5 +10,4 @@ contract ERC721Mock is ERC721Enumerable {
     function mint(address to, uint256 tokenId) external {
         _mint(to, tokenId);
     }
-
 }
