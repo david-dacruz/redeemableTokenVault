@@ -60,14 +60,14 @@ yarn run test
 ### Usage
 
 > **Warning**:
-> If you manually transfer a token to the vault using a simple `transferFrom` without going through the provided deposit functions, the token will get to the vault, but the `depositId` won't be incremented since the internal logic of handling deposits won't be triggered.
+> If you manually transfer a token to the vault using a simple `transferFrom` without going through the provided deposit functions, the token will get to the vault, but the `depositId` won't be incremented since the internal logic of handling deposits won't be triggered. In this case the contract owner can call one the Emergency ERC721 or ERC1155 Withdrawal methods.
 
 For ERC721:
- - a. Approve the vault contract for the token you want to deposit.
- - b. Call `depositERC721(tokenAddress, tokenId)` from the address that owns the token.
- - c. The token will be transferred to the vault, and the `onERC721Received` method will be triggered, leading to the incrementing of the `depositId`.
+ - 1. Approve the vault contract for the token you want to deposit.
+ - 2. Call `depositERC721(tokenAddress, tokenId)` from the address that owns the token.
+ - 3. The token will be transferred to the vault, and the `onERC721Received` method will be triggered, leading to the incrementing of the `depositId`.
 
 For ERC1155:
- - a. Set approval for the vault contract.
- - b. Call `depositERC1155(tokenAddress, tokenId)`.
- - c. The token will be transferred to the vault, and the `onERC1155Received` method will be triggered, leading to the incrementing of the `depositId`.
+ - 1. Set approval for the vault contract.
+ - 2. Call `depositERC1155(tokenAddress, tokenId)`.
+ - 3. The token will be transferred to the vault, and the `onERC1155Received` method will be triggered, leading to the incrementing of the `depositId`.
