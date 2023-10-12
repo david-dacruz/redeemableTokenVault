@@ -17,7 +17,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         address contractAddress; // Address of the token's contract.
         uint256 tokenId; // ID of the specific token.
         bool isERC1155; // True if the token is ERC1155, false if ERC721.
-        uint256 amount; // Used only for ERC1155 tokens, represents the amount deposited.
     }
 
     uint256 public nextDepositId; // Incremental ID for the next deposit.
@@ -33,14 +32,14 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
 
     // Emitted when a token is deposited into the vault.
     event TokenDeposited(
-        address indexed depositor,
-        uint256 indexed depositId,
+        address depositor,
+        uint256 depositId,
         address tokenContract,
         uint256 tokenId
     );
 
     // Emitted when a token is withdrawn from the vault.
-    event TokenWithdrawn(address indexed withdrawer, uint256 indexed depositId);
+    event TokenWithdrawn(address withdrawer, uint256 depositId);
 
     // Mapping of deposit ID to associated withdrawal fees.
     mapping(uint256 => uint256) public withdrawalFees;
@@ -136,7 +135,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
                 address(this),
                 msg.sender,
                 tokenData.tokenId,
-                tokenData.amount,
+                1,
                 ""
             );
         } else {
@@ -176,7 +175,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
                     address(this),
                     recipient,
                     tokenData.tokenId,
-                    tokenData.amount, // Assuming single token withdrawal in case of ERC1155.
+                    1,
                     ""
                 );
             } else {
@@ -251,8 +250,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         tokenVault[nextDepositId] = Token({
             contractAddress: msg.sender,
             tokenId: tokenId,
-            isERC1155: false,
-            amount: 1
+            isERC1155: false
         });
 
         emit TokenDeposited(from, nextDepositId, msg.sender, tokenId);
@@ -275,8 +273,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         tokenVault[nextDepositId] = Token({
             contractAddress: msg.sender,
             tokenId: id,
-            isERC1155: true,
-            amount: 1
+            isERC1155: true
         });
 
         emit TokenDeposited(from, nextDepositId, msg.sender, id);
