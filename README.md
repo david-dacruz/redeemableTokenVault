@@ -4,6 +4,8 @@
 
 The `RedeemableTokenVault` contract facilitates the depositing of both ERC721 and ERC1155 tokens. Authorized addresses are permitted to deposit tokens, while other users can withdraw these tokens using a valid signature from the contract owner.
 
+<img width="1437" alt="Screenshot 2023-10-12 at 22 48 37" src="https://github.com/The-Nifty/redeemables-solidity-contract/assets/10786611/7963f058-01bd-428d-86c4-f1bbf5125f41">
+
 ## Key Features
 
 - **Deposit** - Authorized addresses can deposit both ERC721 and ERC1155 tokens.
@@ -71,3 +73,5 @@ For ERC1155:
 1. Set approval for the vault contract.
 2. Call `depositERC1155(tokenAddress, tokenId)`.
 3. The token will be transferred to the vault, and the `onERC1155Received` method will be triggered, leading to the incrementing of the `depositId`.
+
+
