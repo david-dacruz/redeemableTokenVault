@@ -17,7 +17,7 @@ describe('RedeemableTokenVault', function () {
 		const ERC1155 = await ethers.getContractFactory('ERC1155Mock');
 		erc1155 = await ERC1155.deploy(
 			'https://yourtokenuri.com/api/token/{id}.json'
-		); // URI pattern (or whatever your mock expects)
+		); 
 		await erc1155.deployed();
 
 		// Vault contract deploy
@@ -42,7 +42,7 @@ describe('RedeemableTokenVault', function () {
 				vault.connect(addr1).depositERC721(erc721.address, tokenId1)
 			).to.emit(vault, 'TokenDeposited');
 		});
-
+		
 		it('Should not deposit ERC721 token if address is not in the isAllowed mapping', async function () {
 			await erc721.mint(addr2.address, tokenId1);
 			await erc721.connect(addr2).approve(vault.address, tokenId1);
@@ -585,6 +585,14 @@ describe('RedeemableTokenVault', function () {
 	});
 
 	describe('transferFrom edge cases', function () {
+		it('should allow minted to contract emergency withdrawal for ERC721 tokens', async function () {
+			erc721.mint(vault.address, tokenId1)
+			await vault
+				.connect(owner)
+				.emergencyERC721Withdrawal(erc721.address, 1, addr2.address);
+			expect(await erc721.ownerOf(1)).to.equal(addr2.address);
+		});
+
 		it('should allow emergency withdrawal for ERC721 tokens', async function () {
 			await erc721.connect(addr1).mint(addr1.address, 1);
 			await erc721.connect(addr1).approve(vault.address, 1);
@@ -619,5 +627,20 @@ describe('RedeemableTokenVault', function () {
 				);
 			expect(await erc1155.balanceOf(addr2.address, 1)).to.equal(1);
 		});
+
+			
+		it('should allow minted to contract emergency withdrawal for ERC1155 tokens', async function () {
+			await erc1155.mint(vault.address, 1, 1, []);
+			await vault
+				.connect(owner)
+				.emergencyERC1155Withdrawal(
+					erc1155.address,
+					1,
+					1,
+					addr2.address
+				);
+			expect(await erc1155.balanceOf(addr2.address, 1)).to.equal(1);
+		});
+
 	});
 });
