@@ -12,6 +12,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     using ECDSA for bytes32;
 
+    // Emitted when a token is deposited into the vault.
+    event TokenDeposited(
+        address depositor,
+        uint256 depositId,
+        address tokenContract,
+        uint256 tokenId
+    );
+
+    // Emitted when a token is withdrawn from the vault.
+    event TokenWithdrawn(address withdrawer, uint256 depositId);
+
     // Represents the structure of a token in the vault.
     struct Token {
         address contractAddress; // Address of the token's contract.
@@ -28,19 +39,8 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     mapping(uint256 => Token) public tokenVault;
 
     // Mapping to prevent signature reuse.
-    mapping(bytes32 => bool) public signatureAlreadyUsed;
-
-    // Emitted when a token is deposited into the vault.
-    event TokenDeposited(
-        address depositor,
-        uint256 depositId,
-        address tokenContract,
-        uint256 tokenId
-    );
-
-    // Emitted when a token is withdrawn from the vault.
-    event TokenWithdrawn(address withdrawer, uint256 depositId);
-
+    mapping(bytes32 => bool) private signatureAlreadyUsed;
+ 
     // Mapping of deposit ID to associated withdrawal fees.
     mapping(uint256 => uint256) public withdrawalFees;
 
