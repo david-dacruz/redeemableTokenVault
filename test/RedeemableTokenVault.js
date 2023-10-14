@@ -7,7 +7,7 @@ describe('RedeemableTokenVault', function () {
 	const tokenId2 = 2;
 
 	beforeEach(async function () {
-		[owner, addr1, addr2] = await ethers.getSigners();
+		[owner, addr1, addr2, signer] = await ethers.getSigners();
 
 		// Stub contract deploy
 		const ERC721 = await ethers.getContractFactory('ERC721Mock');
@@ -27,6 +27,8 @@ describe('RedeemableTokenVault', function () {
 
 		// Allow addr1 to deposit tokens in the vault
 		await vault.authorizeDepositor(addr1.address);
+		
+		await vault.setAuthorizedSigner(signer.address);
 
 		const currentBlockNum = await ethers.provider.getBlockNumber();
 
@@ -130,15 +132,6 @@ describe('RedeemableTokenVault', function () {
 	});
 
 	describe('withdrawEther', function () {
-		// const EPSILON = ethers.utils.parseUnits('0.0001', 'ether');
-
-		// function assertAlmostEqual(actual, expected) {
-		// 	assert(
-		// 		actual.sub(expected).abs().lte(EPSILON),
-		// 		`Expected ${actual} to be almost equal to ${expected}`
-		// 	);
-		// }
-
 		it('Should allow the owner to withdraw the entire balance', async () => {
 			// First, send some ether to the contract
 			const initialDeposit = ethers.utils.parseEther('1');
@@ -248,7 +241,7 @@ describe('RedeemableTokenVault', function () {
 				['address', 'uint256', 'uint256', 'address'],
 				[addr2.address, depositId, expirationBlock, vault.address]
 			);
-			const signature = await owner.signMessage(
+			const signature = await signer.signMessage(
 				ethers.utils.arrayify(message)
 			);
 
@@ -272,7 +265,7 @@ describe('RedeemableTokenVault', function () {
 				['address', 'uint256', 'uint256', 'address'],
 				[addr2.address, depositId, expirationBlock, vault.address]
 			);
-			const signature = await owner.signMessage(
+			const signature = await signer.signMessage(
 				ethers.utils.arrayify(message)
 			);
 
@@ -298,7 +291,7 @@ describe('RedeemableTokenVault', function () {
 				['address', 'uint256', 'uint256', 'address'],
 				[addr2.address, depositId, expirationBlock, vault.address]
 			);
-			const signature = await owner.signMessage(
+			const signature = await signer.signMessage(
 				ethers.utils.arrayify(message)
 			);
 
@@ -328,7 +321,7 @@ describe('RedeemableTokenVault', function () {
 				['address', 'uint256', 'uint256', 'address'],
 				[addr2.address, depositId, expirationBlock, vault.address]
 			);
-			const signature = await owner.signMessage(
+			const signature = await signer.signMessage(
 				ethers.utils.arrayify(message)
 			);
 
@@ -396,7 +389,7 @@ describe('RedeemableTokenVault', function () {
 				['address', 'uint256', 'uint256', 'address'],
 				[addr2.address, depositId, expirationBlock, vault.address]
 			);
-			const signature = await owner.signMessage(
+			const signature = await signer.signMessage(
 				ethers.utils.arrayify(message)
 			);
 
@@ -451,7 +444,7 @@ describe('RedeemableTokenVault', function () {
 				['address', 'uint256', 'uint256', 'address'],
 				[addr2.address, depositId, expirationBlock, vault.address]
 			);
-			const signature = await owner.signMessage(
+			const signature = await signer.signMessage(
 				ethers.utils.arrayify(message)
 			);
 
@@ -483,7 +476,7 @@ describe('RedeemableTokenVault', function () {
 				['address', 'uint256', 'uint256', 'address'],
 				[addr2.address, depositId, expirationBlock, vault.address]
 			);
-			const signature = await owner.signMessage(
+			const signature = await signer.signMessage(
 				ethers.utils.arrayify(message)
 			);
 
@@ -519,7 +512,7 @@ describe('RedeemableTokenVault', function () {
 				[addr1.address, depositId, expirationBlock, vault.address]
 			);
 
-			const signature = await owner.signMessage(
+			const signature = await signer.signMessage(
 				ethers.utils.arrayify(message)
 			);
 
@@ -549,7 +542,7 @@ describe('RedeemableTokenVault', function () {
 				['address', 'uint256', 'uint256', 'address'],
 				[addr2.address, depositId, expirationBlock, vault.address]
 			);
-			const signature = await owner.signMessage(
+			const signature = await signer.signMessage(
 				ethers.utils.arrayify(message)
 			);
 			await vault

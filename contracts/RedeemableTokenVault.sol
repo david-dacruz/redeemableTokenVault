@@ -32,6 +32,9 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
 
     uint256 public nextDepositId; // Incremental ID for the next deposit.
 
+    // Address of the authorized signer
+    address public authorizedSigner;
+
     // Mapping to check if an address is authorized to deposit.
     mapping(address => bool) public isDepositorAllowed;
 
@@ -61,6 +64,13 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         );
 
         withdrawalFees[depositId] = fee;
+    }
+
+    /// @notice Sets the address of the authorized signer.
+    /// @param _signer The address to set as the authorized signer.
+    function setAuthorizedSigner(address _signer) external onlyOwner {
+        require(_signer != address(0), "Invalid signer address");
+        authorizedSigner = _signer;
     }
 
     /// @notice Authorizes an address to deposit tokens.
@@ -133,7 +143,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         signatureAlreadyUsed[hash] = true;
 
         address signer = hash.recover(signature);
-        require(signer == owner(), "Invalid signature");
+        require(signer == authorizedSigner, "Invalid signature");
 
         if (tokenData.isERC1155) {
             IERC1155(tokenData.contractAddress).safeTransferFrom(
