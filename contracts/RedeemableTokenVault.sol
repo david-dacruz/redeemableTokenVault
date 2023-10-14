@@ -50,43 +50,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     // Function to receive Ether. The existence of this function makes the contract payable.
     receive() external payable {}
 
-    /// @notice Sets the withdrawal fee for a specific deposit.
-    /// @param depositId The ID of the deposit.
-    /// @param fee The fee amount in wei.
-    function setWithdrawalFee(
-        uint256 depositId,
-        uint256 fee
-    ) external onlyOwner {
-        require(depositId <= nextDepositId, "Invalid deposit ID");
-        require(
-            tokenVault[depositId].contractAddress != address(0),
-            "No token associated with deposit ID"
-        );
-
-        withdrawalFees[depositId] = fee;
-    }
-
-    /// @notice Sets the address of the authorized signer.
-    /// @param _signer The address to set as the authorized signer.
-    function setAuthorizedSigner(address _signer) external onlyOwner {
-        require(_signer != address(0), "Invalid signer address");
-        authorizedSigner = _signer;
-    }
-
-    /// @notice Authorizes an address to deposit tokens.
-    /// @param depositor The address to authorize.
-    function authorizeDepositor(address depositor) external onlyOwner {
-        isDepositorAllowed[depositor] = true;
-    }
-
-    /// @notice Revokes an address' authorization to deposit tokens.
-    /// @param depositor The address to revoke authorization from.
-    function revokeDepositorAuthorization(
-        address depositor
-    ) external onlyOwner {
-        isDepositorAllowed[depositor] = false;
-    }
-
     /// @notice Deposits an ERC721 token into the vault.
     /// @param tokenContract The address of the ERC721 contract.
     /// @param tokenId The ID of the token being deposited.
@@ -163,6 +126,98 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
 
         delete tokenVault[depositId]; // Cleans up the withdrawn token data.
         emit TokenWithdrawn(msg.sender, depositId);
+    }
+
+    /// @notice Implements the IERC721Receiver onERC721Received function to allow safe transfers.
+    /// @dev This is required to comply with the ERC721 standard for receiving tokens.
+    function onERC721Received(
+        address,
+        address from,
+        uint256 tokenId,
+        bytes calldata
+    ) external override returns (bytes4) {
+        nextDepositId++;
+
+        tokenVault[nextDepositId] = Token({
+            contractAddress: msg.sender,
+            tokenId: tokenId,
+            isERC1155: false
+        });
+
+        emit TokenDeposited(from, nextDepositId, msg.sender, tokenId);
+
+        return this.onERC721Received.selector;
+    }
+
+    /// @notice Implements the IERC1155Receiver onERC1155Received function to allow safe transfers.
+    /// @dev This is required to comply with the ERC1155 standard for receiving tokens.
+    function onERC1155Received(
+        address,
+        address from,
+        uint256 id,
+        uint256 value,
+        bytes calldata
+    ) external override returns (bytes4) {
+        require(value == 1, "Deposit 1 token at a time.");
+        nextDepositId++;
+
+        tokenVault[nextDepositId] = Token({
+            contractAddress: msg.sender,
+            tokenId: id,
+            isERC1155: true
+        });
+
+        emit TokenDeposited(from, nextDepositId, msg.sender, id);
+
+        return this.onERC1155Received.selector;
+    }
+
+    /// @notice Required to comply with the ERC1155 standard for batch receiving tokens.
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] memory,
+        uint256[] memory,
+        bytes calldata
+    ) external pure override returns (bytes4) {
+        revert("This contract does not support batch deposits.");
+    }
+
+    /// @notice Sets the withdrawal fee for a specific deposit.
+    /// @param depositId The ID of the deposit.
+    /// @param fee The fee amount in wei.
+    function setWithdrawalFee(
+        uint256 depositId,
+        uint256 fee
+    ) external onlyOwner {
+        require(depositId <= nextDepositId, "Invalid deposit ID");
+        require(
+            tokenVault[depositId].contractAddress != address(0),
+            "No token associated with deposit ID"
+        );
+
+        withdrawalFees[depositId] = fee;
+    }
+
+    /// @notice Sets the address of the authorized signer.
+    /// @param _signer The address to set as the authorized signer.
+    function setAuthorizedSigner(address _signer) external onlyOwner {
+        require(_signer != address(0), "Invalid signer address");
+        authorizedSigner = _signer;
+    }
+
+    /// @notice Authorizes an address to deposit tokens.
+    /// @param depositor The address to authorize.
+    function authorizeDepositor(address depositor) external onlyOwner {
+        isDepositorAllowed[depositor] = true;
+    }
+
+    /// @notice Revokes an address' authorization to deposit tokens.
+    /// @param depositor The address to revoke authorization from.
+    function revokeDepositorAuthorization(
+        address depositor
+    ) external onlyOwner {
+        isDepositorAllowed[depositor] = false;
     }
 
     /// @notice Allows the owner to withdraw tokens in a specified ID range in case of an emergency.
@@ -250,61 +305,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         require(recipient != address(0), "Invalid recipient address");
         uint256 balance = address(this).balance;
         payable(recipient).transfer(balance);
-    }
-
-    /// @notice Implements the IERC721Receiver onERC721Received function to allow safe transfers.
-    /// @dev This is required to comply with the ERC721 standard for receiving tokens.
-    function onERC721Received(
-        address,
-        address from,
-        uint256 tokenId,
-        bytes calldata
-    ) external override returns (bytes4) {
-        nextDepositId++;
-
-        tokenVault[nextDepositId] = Token({
-            contractAddress: msg.sender,
-            tokenId: tokenId,
-            isERC1155: false
-        });
-
-        emit TokenDeposited(from, nextDepositId, msg.sender, tokenId);
-
-        return this.onERC721Received.selector;
-    }
-
-    /// @notice Implements the IERC1155Receiver onERC1155Received function to allow safe transfers.
-    /// @dev This is required to comply with the ERC1155 standard for receiving tokens.
-    function onERC1155Received(
-        address,
-        address from,
-        uint256 id,
-        uint256 value,
-        bytes calldata
-    ) external override returns (bytes4) {
-        require(value == 1, "Deposit 1 token at a time.");
-        nextDepositId++;
-
-        tokenVault[nextDepositId] = Token({
-            contractAddress: msg.sender,
-            tokenId: id,
-            isERC1155: true
-        });
-
-        emit TokenDeposited(from, nextDepositId, msg.sender, id);
-
-        return this.onERC1155Received.selector;
-    }
-
-    /// @notice Required to comply with the ERC1155 standard for batch receiving tokens.
-    function onERC1155BatchReceived(
-        address,
-        address,
-        uint256[] memory,
-        uint256[] memory,
-        bytes calldata
-    ) external pure override returns (bytes4) {
-        revert("This contract does not support batch deposits.");
     }
 
     function supportsInterface(
