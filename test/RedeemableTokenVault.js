@@ -7,7 +7,7 @@ const {
 } = require('../helpers');
 
 describe('RedeemableTokenVault', function () {
-	let vault, erc721, erc1155, owner, addr1, addr2;
+	let vault, erc721, erc1155;
 	const tokenId1 = 1;
 	const tokenId2 = 2;
 
@@ -16,7 +16,7 @@ describe('RedeemableTokenVault', function () {
 
 		// Stub contract deploy
 		const ERC721 = await ethers.getContractFactory('ERC721Mock');
-		erc721 = await ERC721.deploy('MockNFT', 'MNFT'); // added name and symbol
+		erc721 = await ERC721.deploy('MockNFT', 'MNFT');
 		await erc721.deployed();
 
 		const ERC1155 = await ethers.getContractFactory('ERC1155Mock');
@@ -25,12 +25,10 @@ describe('RedeemableTokenVault', function () {
 		);
 		await erc1155.deployed();
 
-		// Vault contract deploy
 		const Vault = await ethers.getContractFactory('RedeemableTokenVault');
 		vault = await Vault.deploy();
 		await vault.deployed();
 
-		// Allow addr1 to deposit tokens in the vault
 		await vault.authorizeDepositor(addr1.address);
 
 		await vault.setAuthorizedSigner(signer.address);
