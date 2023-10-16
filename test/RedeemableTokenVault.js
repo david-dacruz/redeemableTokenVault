@@ -32,6 +32,9 @@ describe('RedeemableTokenVault', function () {
 		await vault.authorizeDepositor(addr1.address);
 
 		await vault.setAuthorizedSigner(signer.address);
+		
+		await vault.authorizeContractDeposit(erc721.address);
+		await vault.authorizeContractDeposit(erc1155.address);
 
 		const currentBlockNum = await ethers.provider.getBlockNumber();
 
