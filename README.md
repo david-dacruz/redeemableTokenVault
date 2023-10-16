@@ -2,14 +2,14 @@
 
 ## Overview
 
-The `RedeemableTokenVault` contract facilitates the depositing of both ERC721 and ERC1155 tokens. Authorized addresses are permitted to deposit tokens, while other users can withdraw these tokens using a valid signature from the contract owner.
+The `RedeemableTokenVault` contract facilitates the depositing of both ERC721 and ERC1155 tokens. Authorized addresses are permitted to deposit tokens, while other users can withdraw these tokens using a valid signature.
 
 <img width="1437" alt="Screenshot 2023-10-12 at 22 48 37" src="https://github.com/The-Nifty/redeemables-solidity-contract/assets/10786611/7963f058-01bd-428d-86c4-f1bbf5125f41">
 
 ## Key Features
 
 - **Deposit** - Authorized addresses can deposit both ERC721 and ERC1155 tokens.
-- **Withdraw with Signature** - Users can withdraw tokens with a valid signature from the contract owner. This provides an extra layer of security and control over the withdrawal process.
+- **Withdraw with Signature** - Users can withdraw tokens with a valid signature. This provides an extra layer of security and control over the withdrawal process.
 - **Withdrawal Fee** - Owners can set a withdrawal fee for specific deposits, which users must pay when withdrawing.
 - **Emergency Batch Withdrawal** - The contract owner has the ability to transfer all deposited tokens to another address in case of an emergency.
 - **Emergency ERC721 and ERC1155 Withdrawal** - The contract owner can move tokens to a different address if they were inadvertently deposited via transferFrom, a method that shouldn't be used for deposits.
