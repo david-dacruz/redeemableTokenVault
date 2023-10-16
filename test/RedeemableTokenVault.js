@@ -504,82 +504,13 @@ describe('RedeemableTokenVault', function () {
 	});
 
 	describe('safeTransfers and Withdrawals', function () {
-		it('Should deposit ERC721 token via direct safeTransfer and then withdraw with valid signature', async function () {
-			await erc721.connect(addr1).mint(addr1.address, 1);
-			await erc721.connect(addr1).setApprovalForAll(vault.address, true);
-			await erc721
-				.connect(addr1)
-				['safeTransferFrom(address,address,uint256,bytes)'](
-					addr1.address,
-					vault.address,
-					1,
-					[]
-				);
-
-			const depositId = 1;
-
-			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256', 'address'],
-				[addr1.address, depositId, expirationBlock, vault.address]
-			);
-
-			const signature = await signer.signMessage(
-				ethers.utils.arrayify(message)
-			);
-
-			await vault
-				.connect(addr1)
-				.withdrawWithSignature(depositId, signature, expirationBlock);
-
-			expect(await erc721.ownerOf(1)).to.equal(addr1.address);
-		});
-
-		it('Should deposit ERC1155 token via direct safeTransfer and then withdraw with valid signature', async function () {
-			await erc1155.connect(addr1).mint(addr1.address, 1, 1, []);
-			await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
-			await erc1155
-				.connect(addr1)
-				['safeTransferFrom(address,address,uint256,uint256,bytes)'](
-					addr1.address,
-					vault.address,
-					1,
-					1,
-					[]
-				);
-
-			const depositId = 1;
-
-			const message = ethers.utils.solidityKeccak256(
-				['address', 'uint256', 'uint256', 'address'],
-				[addr2.address, depositId, expirationBlock, vault.address]
-			);
-			const signature = await signer.signMessage(
-				ethers.utils.arrayify(message)
-			);
-			await vault
-				.connect(addr2)
-				.withdrawWithSignature(depositId, signature, expirationBlock);
-
-			// Check if token was withdrawn correctly
-			const balanceAfterWithdraw = await erc1155.balanceOf(
-				addr2.address,
-				1
-			);
-			expect(balanceAfterWithdraw).to.equal(1);
-		});
 
 		it('should only allow safeTransfer one token at a time', async function () {
 			// Mint a token to addr1 and approve the vault
 			await erc1155.connect(addr1).mint(addr1.address, 1, 2, []);
 			await erc1155.connect(addr1).setApprovalForAll(vault.address, true);
 
-			// Expect that trying to deposit more than one token will revert
-			await expect(
-				erc1155
-					.connect(addr1)
-					.safeTransferFrom(addr1.address, vault.address, 1, 2, [])
-			).to.be.revertedWith('Deposit 1 token at a time.');
-
+			
 			// Deposit one token and expect it to be successful
 			await erc1155
 				.connect(addr1)
@@ -625,14 +556,4 @@ describe('RedeemableTokenVault', function () {
 		});
 	});
 	
-	describe('minted to contract', function () {
-
-		it('should not allow minted to contract ERC721 tokens', async function () {
-		    await expect(erc721.mint(vault.address, tokenId1)).to.be.revertedWith("Depositor not authorized");
-		});
-
-		it('should not allow minted to contract ERC1155 tokens', async function () {
-			await expect(erc1155.mint(vault.address, tokenId1, 1, [])).to.be.revertedWith("Depositor not authorized");
-		});
-	});
 });

@@ -54,11 +54,23 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     /// @param tokenContract The address of the ERC721 contract.
     /// @param tokenId The ID of the token being deposited.
     function depositERC721(address tokenContract, uint256 tokenId) external {
+        require(isDepositorAllowed[msg.sender], "Depositor not authorized");
+        
+        nextDepositId++;
+
+        tokenVault[nextDepositId] = Token({
+            contractAddress: tokenContract,
+            tokenId: tokenId,
+            isERC1155: false
+        });
+
         IERC721(tokenContract).safeTransferFrom(
             msg.sender,
             address(this),
             tokenId
         );
+
+        emit TokenDeposited(msg.sender, nextDepositId, tokenContract, tokenId);
     }
 
     /// @notice Deposits an ERC1155 token into the vault.
@@ -66,6 +78,16 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     /// @param tokenContract The address of the ERC1155 contract.
     /// @param tokenId The ID of the token being deposited.
     function depositERC1155(address tokenContract, uint256 tokenId) external {
+        require(isDepositorAllowed[msg.sender], "Depositor not authorized");
+
+        nextDepositId++;
+
+        tokenVault[nextDepositId] = Token({
+            contractAddress: tokenContract,
+            tokenId: tokenId,
+            isERC1155: true
+        });
+
         IERC1155(tokenContract).safeTransferFrom(
             msg.sender,
             address(this),
@@ -73,6 +95,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
             1,
             ""
         );
+        emit TokenDeposited(msg.sender, nextDepositId, tokenContract, tokenId);
     }
 
     /// @notice Withdraws a token from the vault using a signature for authentication.
@@ -129,46 +152,23 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     /// @notice Implements the IERC721Receiver onERC721Received function to allow safe transfers.
     /// @dev This is required to comply with the ERC721 standard for receiving tokens.
     function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
+        address,
+        address,
+        uint256,
         bytes calldata
-    ) external override returns (bytes4) {
-        require(isDepositorAllowed[operator] || isDepositorAllowed[from], "Depositor not authorized");
-        nextDepositId++;
-
-        tokenVault[nextDepositId] = Token({
-            contractAddress: msg.sender,
-            tokenId: tokenId,
-            isERC1155: false
-        });
-
-        emit TokenDeposited(from, nextDepositId, msg.sender, tokenId);
-
+    ) pure external override returns (bytes4) {
         return this.onERC721Received.selector;
     }
 
     /// @notice Implements the IERC1155Receiver onERC1155Received function to allow safe transfers.
     /// @dev This is required to comply with the ERC1155 standard for receiving tokens.
     function onERC1155Received(
-        address operator,
-        address from,
-        uint256 id,
-        uint256 value,
+        address,
+        address,
+        uint256,
+        uint256,
         bytes calldata
-    ) external override returns (bytes4) {
-        require(isDepositorAllowed[operator] || isDepositorAllowed[from], "Depositor not authorized");
-        require(value == 1, "Deposit 1 token at a time.");
-        nextDepositId++;
-
-        tokenVault[nextDepositId] = Token({
-            contractAddress: msg.sender,
-            tokenId: id,
-            isERC1155: true
-        });
-
-        emit TokenDeposited(from, nextDepositId, msg.sender, id);
-
+    ) pure external override returns (bytes4) {
         return this.onERC1155Received.selector;
     }
 
