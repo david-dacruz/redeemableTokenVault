@@ -54,7 +54,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     /// @param tokenContract The address of the ERC721 contract.
     /// @param tokenId The ID of the token being deposited.
     function depositERC721(address tokenContract, uint256 tokenId) external {
-        require(isDepositorAllowed[msg.sender], "Depositor not authorized");
         IERC721(tokenContract).safeTransferFrom(
             msg.sender,
             address(this),
@@ -67,7 +66,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     /// @param tokenContract The address of the ERC1155 contract.
     /// @param tokenId The ID of the token being deposited.
     function depositERC1155(address tokenContract, uint256 tokenId) external {
-        require(isDepositorAllowed[msg.sender], "Depositor not authorized");
         IERC1155(tokenContract).safeTransferFrom(
             msg.sender,
             address(this),
@@ -131,11 +129,12 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     /// @notice Implements the IERC721Receiver onERC721Received function to allow safe transfers.
     /// @dev This is required to comply with the ERC721 standard for receiving tokens.
     function onERC721Received(
-        address,
+        address operator,
         address from,
         uint256 tokenId,
         bytes calldata
     ) external override returns (bytes4) {
+        require(isDepositorAllowed[operator] || isDepositorAllowed[from], "Depositor not authorized");
         nextDepositId++;
 
         tokenVault[nextDepositId] = Token({
@@ -152,12 +151,13 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     /// @notice Implements the IERC1155Receiver onERC1155Received function to allow safe transfers.
     /// @dev This is required to comply with the ERC1155 standard for receiving tokens.
     function onERC1155Received(
-        address,
+        address operator,
         address from,
         uint256 id,
         uint256 value,
         bytes calldata
     ) external override returns (bytes4) {
+        require(isDepositorAllowed[operator] || isDepositorAllowed[from], "Depositor not authorized");
         require(value == 1, "Deposit 1 token at a time.");
         nextDepositId++;
 

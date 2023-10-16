@@ -589,14 +589,6 @@ describe('RedeemableTokenVault', function () {
 	});
 
 	describe('transferFrom edge cases', function () {
-		it('should allow minted to contract emergency withdrawal for ERC721 tokens', async function () {
-			erc721.mint(vault.address, tokenId1);
-			await vault
-				.connect(owner)
-				.emergencyERC721Withdrawal(erc721.address, 1, addr2.address);
-			expect(await erc721.ownerOf(1)).to.equal(addr2.address);
-		});
-
 		it('should allow emergency withdrawal for ERC721 tokens', async function () {
 			await erc721.connect(addr1).mint(addr1.address, 1);
 			await erc721.connect(addr1).approve(vault.address, 1);
@@ -631,18 +623,16 @@ describe('RedeemableTokenVault', function () {
 				);
 			expect(await erc1155.balanceOf(addr2.address, 1)).to.equal(1);
 		});
+	});
+	
+	describe('minted to contract', function () {
 
-		it('should allow minted to contract emergency withdrawal for ERC1155 tokens', async function () {
-			await erc1155.mint(vault.address, 1, 1, []);
-			await vault
-				.connect(owner)
-				.emergencyERC1155Withdrawal(
-					erc1155.address,
-					1,
-					1,
-					addr2.address
-				);
-			expect(await erc1155.balanceOf(addr2.address, 1)).to.equal(1);
+		it('should not allow minted to contract ERC721 tokens', async function () {
+		    await expect(erc721.mint(vault.address, tokenId1)).to.be.revertedWith("Depositor not authorized");
+		});
+
+		it('should not allow minted to contract ERC1155 tokens', async function () {
+			await expect(erc1155.mint(vault.address, tokenId1, 1, [])).to.be.revertedWith("Depositor not authorized");
 		});
 	});
 });
