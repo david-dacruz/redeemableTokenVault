@@ -37,7 +37,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
 
     // Mapping to check if an address is authorized to deposit.
     mapping(address => bool) public isDepositorAllowed;
-   
+
     // Mapping to check if a specific contract is authorized to token deposit.
     mapping(address => bool) public isContractAllowed;
 
@@ -46,7 +46,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
 
     // Mapping to prevent signature reuse.
     mapping(bytes32 => bool) private signatureAlreadyUsed;
- 
+
     // Mapping of deposit ID to associated withdrawal fees.
     mapping(uint256 => uint256) public withdrawalFees;
 
@@ -68,13 +68,13 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
             isERC1155: false
         });
 
+        emit TokenDeposited(msg.sender, nextDepositId, tokenContract, tokenId);
+
         IERC721(tokenContract).safeTransferFrom(
             msg.sender,
             address(this),
             tokenId
         );
-
-        emit TokenDeposited(msg.sender, nextDepositId, tokenContract, tokenId);
     }
 
     /// @notice Deposits an ERC1155 token into the vault.
@@ -93,6 +93,8 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
             isERC1155: true
         });
 
+        emit TokenDeposited(msg.sender, nextDepositId, tokenContract, tokenId);
+
         IERC1155(tokenContract).safeTransferFrom(
             msg.sender,
             address(this),
@@ -100,7 +102,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
             1,
             ""
         );
-        emit TokenDeposited(msg.sender, nextDepositId, tokenContract, tokenId);
     }
 
     /// @notice Withdraws a token from the vault using a signature for authentication.
@@ -113,8 +114,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         uint256 expiryBlockHeight
     ) external payable {
         require(block.number <= expiryBlockHeight, "Signature expired");
-
-        Token memory tokenData = tokenVault[depositId];
 
         uint256 requiredFee = withdrawalFees[depositId];
         require(msg.value >= requiredFee, "Insufficient fee paid");
@@ -134,6 +133,12 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         address signer = hash.recover(signature);
         require(signer == authorizedSigner, "Invalid signature");
 
+        Token memory tokenData = tokenVault[depositId];
+
+        delete tokenVault[depositId];
+
+        emit TokenWithdrawn(msg.sender, depositId);
+
         if (tokenData.isERC1155) {
             IERC1155(tokenData.contractAddress).safeTransferFrom(
                 address(this),
@@ -149,9 +154,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
                 tokenData.tokenId
             );
         }
-
-        delete tokenVault[depositId]; // Cleans up the withdrawn token data.
-        emit TokenWithdrawn(msg.sender, depositId);
     }
 
     /// @notice Sets the withdrawal fee for a specific deposit.
@@ -188,12 +190,14 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     function revokeContractDepositAuthorization(
         address tokenContract
     ) external onlyOwner {
-         isContractAllowed[tokenContract] = false;
+        isContractAllowed[tokenContract] = false;
     }
-    
+
     /// @notice Authorizes contract to deposit tokens.
     /// @param tokenContract The address to authorize.
-    function authorizeContractDeposit(address tokenContract) external onlyOwner {
+    function authorizeContractDeposit(
+        address tokenContract
+    ) external onlyOwner {
         isContractAllowed[tokenContract] = true;
     }
 
@@ -225,6 +229,8 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
 
             Token memory tokenData = tokenVault[i];
 
+            delete tokenVault[i];
+
             if (tokenData.isERC1155) {
                 IERC1155(tokenData.contractAddress).safeTransferFrom(
                     address(this),
@@ -240,8 +246,6 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
                     tokenData.tokenId
                 );
             }
-
-            delete tokenVault[i]; // Cleans up the withdrawn token data.
         }
     }
 
@@ -286,10 +290,12 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
     }
 
     /// @notice Withdraws Ether from the contract.
-    function withdrawEther(address recipient) external onlyOwner {
+    /// @param recipient The address receiving the balance
+    function withdrawEther(address payable recipient) external onlyOwner {
         require(recipient != address(0), "Invalid recipient address");
         uint256 balance = address(this).balance;
-        payable(recipient).transfer(balance);
+        (bool success, ) = recipient.call{value: balance}("");
+        require(success, "Transfer failed.");
     }
 
     /// @notice Implements the IERC721Receiver onERC721Received function to allow safe transfers.
@@ -299,7 +305,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         address,
         uint256,
         bytes calldata
-    ) pure external override returns (bytes4) {
+    ) external pure override returns (bytes4) {
         return this.onERC721Received.selector;
     }
 
@@ -311,7 +317,7 @@ contract RedeemableTokenVault is IERC721Receiver, IERC1155Receiver, Ownable {
         uint256,
         uint256,
         bytes calldata
-    ) pure external override returns (bytes4) {
+    ) external pure override returns (bytes4) {
         return this.onERC1155Received.selector;
     }
 
